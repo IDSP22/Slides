@@ -1,0 +1,720 @@
+---
+title: "APSTA-GE-2358 Week 1"
+subtitle: "Introduction to Interactive Data Science with R Shiny"
+date: "1/24/2022"
+output:
+  xaringan::moon_reader:
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      countIncrementalSlides: false
+---
+class: inverse, center, middle
+
+# Why interactive data science?
+
+```{r, echo=FALSE}
+require(rmarkdown) #used for syntax highlighting in this document
+require(xaringan)
+```
+
+```{css, echo = FALSE}
+<!-- .remark-slide-content { -->
+<!--   font-size: 28px; -->
+<!--   padding: 20px 80px 20px 80px; -->
+<!-- } -->
+<!-- .remark-code, .remark-inline-code { -->
+<!--   background: #f0f0f0; -->
+<!-- } -->
+<!-- .remark-code { -->
+<!--   font-size: 24px; -->
+<!-- } -->
+<!-- .huge .remark-code { /*Change made here*/ -->
+<!--   font-size: 200% !important; -->
+<!-- } -->
+.tiny .remark-code { /*Change made here*/
+  font-size: 50% !important;
+}
+
+.reallyTiny .remark-code { /*Change made here*/
+  font-size: 40% !important;
+}
+```
+
+
+
+---
+class: inverse, center, middle
+
+# R Shiny what and why?
+
+---
+# R Shiny examples
+- What does the app do/what problem does it solve? 
+- How does the app work? 
+- Who is this app designed for?
+
+--
+
+[tidy tuesday twitter app](https://nsgrantham.shinyapps.io/tidytuesdayrocks/)
+
+--
+
+[medical antimicrobial app](https://ceefluz.shinyapps.io/radar/)
+
+--
+
+[thinkCausal](https://apsta.shinyapps.io/thinkCausal/)
+
+---
+# Course Communication
+
+Emails:
+
+yoav.bergner@nyu.edu 
+
+gp77@nyu.edu
+
+Slack:
+[class slack channel](https://join.slack.com/t/slack-sdp8200/shared_invite/zt-124ermz3a-eOKomUpHGpXv_Qm5_u9I5g)
+
+---
+# Coursework 
+
+Assignments:
+- 2 introductory R Shiny assignmets (10%)
+- 1 UX assignment (10%)
+- 3 R Shiny potfolio pieces (30%)
+
+Assignments graded on a 10 point scale: 
+- 4 points for submitting code that attempts
+- 3 points for having the app compile
+- 3 thoughtful UI, well commented code, well written code, creativty
+
+Code reviews: 
+- 3 code reviews (20%)
+- You will have the opportunity to resubmit assignments after code reviews
+
+Final Project (30%)
+
+---
+# GitHub Classroom 
+
+R Shiny work and code reviews will be submitted on GitHub Classroom
+
+[class link](https://classroom.github.com/classrooms/94716417-apsta-ge-2358-idsp22)
+
+---
+class: inverse, center, middle
+
+# R Getting Started with Shiny
+
+---
+# The basic equation of Shiny
+
+Shiny is just an R package and installation is the same as any R package. 
+
+```{r, eval=FALSE}
+install.packages('shiny')
+library(shiny)
+```
+
+`Shiny = UI + Server`
+
+---
+# Shiny UI
+
+The Shiny UI is code that bridges the user with the R data science engine
+
+Anything that a user directly interacts with is the Shiny UI (one exception we will cover later)
+
+Shiny UI creates:
+
+- Dials 
+- Buttons
+- Space for output
+- Tabs
+- Page Scroll
+- Space to show outputs (Plots, Tables, Text, etc.)
+
+Not traditional R code
+
+---
+# Shiny Server
+
+The Shiny Server is the R data science engine
+
+- Implements R code 
+- Generates plots
+- Makes predictions 
+- "Listens" to the UI
+- Invisible to the user
+
+Traditional R code wrapped in **reactive functions**
+
+---
+# Reactivity
+
+`Shiny = UI + Server`
+
+Reactivity is the "+" of the Shiny equation 
+
+Reactivity is also the largest difference between R Shiny and scripting in R
+
+Reactivity will take time and practice to get used too and is the most difficult aspect of learning Shiny
+    
+---
+class: inverse, center, middle
+
+# Reactivity example
+
+---
+# Reactivity Example
+
+*Problem:*
+*Building a currency exchange application*
+
+If we want to convert 1 US dollar to 1 Euro base R appears to get the job done.
+
+```{r}
+dollar <- 1
+conversion_rate <- .88
+euro <- dollar*conversion_rate 
+euro
+
+```
+
+But this quickly becomes a problem when we start changing the number of dollars!
+
+```{r}
+dollar <- 5.75
+euro
+```
+
+---
+# Reactivity Example
+
+We have R functions for this though!
+```{r}
+dollar <- 5.75
+dollar_to_euro <- function(conversion_rate  = .88){
+  Sys.sleep(10) # 10 secound compute cost 
+  dollar*conversion_rate 
+}
+
+dollar_to_euro()
+```
+---
+# Reactivity Example
+
+The problem with R functions is that each time we call them they need to be computed. 
+
+Calling the same function twice will require a lot of unnecessary compute time. 
+
+.tiny[
+```{r}
+start <- Sys.time()
+dollar_to_euro()
+end <- Sys.time()
+end - start 
+```
+
+```{r}
+start <- Sys.time()
+dollar_to_euro()
+end <- Sys.time()
+end - start 
+
+```
+
+]
+---
+# Reactivity Example
+
+Reactive values are more flexible R variables
+
+```{r}
+library(shiny)
+reactiveConsole(TRUE) 
+
+# this is a reactive variable
+dollar <- reactiveVal(1)
+dollar()
+```
+
+```{r}
+dollar(5.75)
+dollar()
+
+```
+
+---
+# Reactivity Example
+
+Reactive functions only run when reactive values are updated
+.tiny[
+
+```{r}
+# this is a reactive function
+reactive_dollar_to_euro <- reactive({
+  conversion_rate  = .88
+  Sys.sleep(10) # 10 second compute cost 
+  dollar()*conversion_rate
+})
+```
+
+```{r}
+# Lets see what happens when we run the same task twice now:
+start <- Sys.time()
+dollars <- reactive_dollar_to_euro()
+end <- Sys.time()
+dollars;end - start 
+```
+
+```{r}
+# second run
+start <- Sys.time()
+dollars <- reactive_dollar_to_euro()
+end <- Sys.time()
+dollars;end - start 
+```
+]
+---
+# Reactivity Example
+
+When the dollar amount is updated the function will compute a quantity from scratch
+```{r}
+# Lets change the dollar value and see what happens 
+dollar(20.78)
+start <- Sys.time()
+dollars <- reactive_dollar_to_euro()
+end <- Sys.time()
+dollars;end - start 
+
+```
+
+---
+# Shiny directories and files
+
+In traditional file names are used to differentiate different scripts
+
+    analysis.R
+    data_cleaning.R
+    
+In Shiny **file directories** are used to differentiate different applications
+
+    analysis
+      -ui.R
+      -server.R
+    data_cleaning
+      -ui.R
+      -server.R
+
+Renaming `ui.R` or `server.R` will lead to bugs
+
+---
+class: inverse, center, middle
+
+# Shiny Demo
+
+---
+# Creating an intial Shiny app
+
+After installing Shiny you can get started by opening R Studio 
+
+This example creates our first application: *Example_app1*
+
+Click through the following path: 
+
+    File -> New File -> Shiny Web App...
+    
+.center[
+<img src="img/create_shiny_prompt.png" width=50% height=50%>
+]
+
+I prefer/encourage **ui.R/server.R** structure for easier organization
+
+
+---
+# Old Faithful Geyser Data
+
+    Example_app1 # this is our app directory
+      -ui.R      # .R file for ui code
+      -server.R  # .R file for server code
+      
+.reallyTiny[
+.pull-left[
+**ui.R**
+
+```{r, eval = FALSE}
+#
+# This is the user-interface definition of a Shiny web application. You can
+# run the application by clicking 'Run App' above.
+#
+# Find out more about building applications with Shiny here:
+#
+#    http://shiny.rstudio.com/
+#
+
+library(shiny)
+
+# Define UI for application that draws a histogram
+shinyUI(fluidPage(
+
+    # Application title
+    titlePanel("Old Faithful Geyser Data"),
+
+    # Sidebar with a slider input for number of bins
+    sidebarLayout(
+        sidebarPanel(
+            sliderInput("bins",
+                        "Number of bins:",
+                        min = 1,
+                        max = 50,
+                        value = 30)
+        ),
+
+        # Show a plot of the generated distribution
+        mainPanel(
+            plotOutput("distPlot")
+        )
+    )
+))
+
+```
+
+]
+.pull-right[
+**server.R**
+
+```{r}
+#
+# This is the server logic of a Shiny web application. You can run the
+# application by clicking 'Run App' above.
+#
+# Find out more about building applications with Shiny here:
+#
+#    http://shiny.rstudio.com/
+#
+
+library(shiny)
+
+# Define server logic required to draw a histogram
+shinyServer(function(input, output) {
+
+    output$distPlot <- renderPlot({
+
+        # generate bins based on input$bins from ui.R
+        x    <- faithful[, 2]
+        bins <- seq(min(x), max(x), length.out = input$bins + 1)
+
+        # draw the histogram with the specified number of bins
+        hist(x, breaks = bins, col = 'darkgray', border = 'white')
+
+    })
+
+})
+
+```
+]
+]
+
+      
+---
+class: inverse, center, middle
+background-image: url("img/run_ex1.png")
+background-size: contain
+
+---
+# Inputs and Outputs
+
+Shiny UI:
+- creates inputs with `inputId` 
+- receives Outputs as `outputId`
+
+Shiny Server: 
+- creates Outputs with`output$` 
+- receives Inputs with `input$`
+
+Inputs are reactive values Outputs are the objects created by reactive functions
+---
+# Inputs and Outputs in Shiny code
+
+.reallyTiny[
+.pull-left[
+**ui.R**
+
+`bins` is a reactive value
+`distPlot` is the `outputId`
+
+```{r, eval = FALSE}
+library(shiny)
+
+shinyUI(fluidPage(
+    titlePanel("Old Faithful Geyser Data"),
+    sidebarLayout(
+        sidebarPanel(
+            sliderInput(inputId = "bins", 
+                        label = "Number of bins:", 
+                        min = 1,
+                        max = 50,
+                        value = 30)
+        ),
+        mainPanel(
+          # this links the UI the server object
+            plotOutput(outputId = "distPlot") 
+        )
+    )
+))
+```
+
+]
+.pull-right[
+**server.R**
+
+`distPlot` is an output object
+`distPlot` is also the `outputId`
+
+
+```{r, eval=FALSE}
+library(shiny)
+
+shinyServer(function(input, output) {
+    # create an output object and assign an outputId
+    output$distPlot <- renderPlot({
+        wait_time    <- faithful[, 2]
+        bins <- seq(min(wait_time), max(wait_time), length.out = input$bins + 1)
+        hist(wait_time, breaks = bins, col = 'darkgray', border = 'white')
+
+    })
+
+})
+
+```
+
+]
+]
+
+---
+# Adding Inputs 
+
+How could we add more interactive features? 
+
+Shiny comes with many [input widgets](https://shiny.rstudio.com/tutorial/written-tutorial/lesson3/)
+
+We can easily use the `selectInput` widget to allow interactive color in **Example_app1**
+
+`selectInput` could easily be replaced with `radioButtons` or many other UI options. 
+
+---
+# Updating Inputs in Shiny
+Add a drop-down to change the color of the histogram
+.pull-left[
+**ui.R**
+.reallyTiny[
+```{r, eval = FALSE}
+library(shiny)
+
+shinyUI(fluidPage(
+    titlePanel("Old Faithful Geyser Data"),
+    sidebarLayout(
+        sidebarPanel(
+            sliderInput(inputId = "bins", 
+                        label = "Number of bins:",
+                        min = 1,
+                        max = 50,
+                        value = 30), 
+            # this is the new input:
+            selectInput(inputId = 'color', 
+                        label = 'Choose a color:', 
+                        choices = list('Red' = 'red', 'Blue' = 'blue'),
+                        selected = 1)
+            # end of new input 
+        ),
+        mainPanel(
+            plotOutput(outputId = "distPlot")
+        )
+    )
+))
+```
+]
+]
+
+.pull-right[
+
+**server.R**
+.reallyTiny[
+```{r, eval = FALSE}
+library(shiny)
+
+# Define server logic required to draw a histogram
+shinyServer(function(input, output) {
+
+    output$distPlot <- renderPlot({
+
+        # generate bins based on input$bins from ui.R
+        wait_time    <- faithful[, 2]
+        bins <- seq(min(wait_time), max(wait_time), length.out = input$bins + 1)
+
+        # draw the histogram with the specified number of bins
+        hist(wait_time, breaks = bins, col = input$color, border = 'white')
+
+    })
+
+})
+```
+]
+]
+---
+
+class: inverse, center, middle
+background-image: url("img/ex2.png")
+background-size: contain
+
+
+---
+# Adding Outputs
+
+Shiny has different built in reactive functions for different kinds of Outputs 
+
+The most basic are: 
+
+- `renderPlot({})`
+- `renderTable({})`
+- `renderDataTable({})`
+- `renderImage({})`
+- `renderText({})`
+- `renderPrint({})`
+
+
+
+---
+# Creating a Summary Table for Old Faithful Geyser Data
+
+Update `server.R` code by adding a new output and reactive function. 
+- In this case we will use `renderPrint({})`
+
+Update `ui.R` to link the new output to the UI
+
+.reallyTiny[
+.pull-left[
+**ui.R**
+```{r, eval=FALSE}
+library(shiny)
+shinyUI(fluidPage(
+    titlePanel("Old Faithful Geyser Data"),
+    sidebarLayout(
+        sidebarPanel(
+            sliderInput(inputId = "bins", 
+                        label = "Number of bins:",
+                        min = 1,
+                        max = 50,
+                        value = 30), 
+            selectInput(inputId = 'color', 
+                        label = 'Choose a color:', 
+                        choices = list('Red' = 'red', 'Blue' = 'blue'), 
+                        selected = 1)
+        ), # commas are important for UI 
+        # Show a plot and summary table of the generated distribution
+        mainPanel(
+            plotOutput(outputId = "distPlot"), 
+            # add the new output to the UI
+            verbatimTextOutput(outputId = "summaryTable") 
+            
+        )
+    )
+))
+```
+]
+
+.pull-right[
+**server.R**
+```{r, eval = FALSE}
+library(shiny)
+
+shinyServer(function(input, output) {
+    output$distPlot <- renderPlot({
+        wait_time    <- faithful[, 2]
+        bins <- seq(min(wait_time), max(wait_time), length.out = input$bins + 1)
+        hist(wait_time, breaks = bins, col = input$color, border = 'white')
+
+    })
+    
+    # create a new output, note you do not need a comma 
+    output$summaryTable <- renderPrint({ 
+      wait_time <- faithful[, 2]
+      summary(wait_time)
+    })
+
+})
+
+```
+]
+
+]
+
+---
+class: inverse, center, middle
+background-image: url("img/ex3.png")
+background-size: contain
+---
+# Adding Logic to expand the server
+*Problem:*
+*How could I make the plot type interactive?*
+
+--
+
+Using R `if()` `else if()` & `else()` statements within a reactive function.
+
+--
+
+We'll add the option of a density plot the the Old Faithful example 
+
+---
+# Interactive Logic Example 
+
+The first step is creating an input to change between histogram and density plots. 
+
+```{r, eval = FALSE}
+radioButtons(inputId = 'plot_type', 
+                   label = 'Select plot type:', 
+                   choices = c('histogram', 'density'), 
+                   selected = 'histogram')
+```
+
+--
+The next step would be updating the logic of of our `distPlot` object: 
+
+```{r, eval = FALSE}
+  output$distPlot <- renderPlot({
+    wait_time    <- faithful[, 2]
+    bins <- seq(min(wait_time), max(wait_time), length.out = input$bins + 1)
+    
+    # logic that creates either a histogram or density plot
+    if (input$plot_type == 'histogram') {
+      hist(wait_time, breaks = bins, col = input$color, border = 'white')
+    } else if (input$plot_type == 'density') {
+      plot(density(wait_time), col = input$color)
+    }
+    
+})
+  
+```
+
+---
+class: inverse, center, middle
+
+
+[Old Faithful Geyser App](https://gperrett.shinyapps.io/Example_app1/)
+
+---
+class: inverse, center, middle
+
+# UI problems and solutions
+
+---
+# For next week
+
+- Sign up for GitHub classroom
+- Compelte GitHub Fundamentals
+- Readings
