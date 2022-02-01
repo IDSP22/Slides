@@ -1,6 +1,8 @@
 # Course Schedule 
 
-Schedule subject to revision
+Schedule subject to revision.
+
+Assignments in Week N are due by 11pm on the night before meeting for Week N+1 (same for Readings)
 
 | Week | Mtg 2022 | Topics                                            | Readings                 | Assignments                |
 |------|----------|---------------------------------------------------|--------------------------|----------------------------|
