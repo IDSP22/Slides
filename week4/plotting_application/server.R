@@ -101,7 +101,7 @@ shinyServer(function(input, output) {
       # throw an warning and let them now which plot it is
       # notive if the proposal already exists we DO NOT re-run the make_plot function 
     
-      replicate <- which(proposal %in% lapply(store$results, '[[', 1))
+      replicate <- which(proposal == unlist(lapply(store$results, '[[', 1)))
       show_alert(
         title = 'Replicated Plot!',
         text = paste(
